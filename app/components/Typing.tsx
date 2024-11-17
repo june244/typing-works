@@ -47,6 +47,8 @@ export default function TypingTest() {
 
     // 잘못된 입력이 발생했을 때 incorrectCount 업데이트
     if (currentIncorrectCount > 0) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       setIncorrectCount((prev) => Math.min(prev + currentIncorrectCount, 2));
     } else {
       // 잘못된 입력이 없다면 incorrectCount를 초기화

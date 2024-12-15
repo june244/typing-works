@@ -14,8 +14,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "우혜림의 타이핑 연습장",
-  description: "우혜림만 쓸 수 있음",
+  title: "타이핑 연습장",
+  // description: "우혜림만 쓸 수 있음",
 };
 
 export default function RootLayout({

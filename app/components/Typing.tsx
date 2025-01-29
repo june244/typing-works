@@ -3,7 +3,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react"; // useState 추가
 import ProgressBar from "./ProgressBar";
 import { useTypingContext } from "../context/TypingContext";
-import { throttle } from "lodash-es";
 
 interface Particle {
   x: number;
@@ -96,7 +95,8 @@ export default function TypingTest() {
     ];
 
     propertiesToCopy.forEach((prop) => {
-      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
       mirrorDiv.style[prop] = computed[prop];
     });
 
@@ -160,6 +160,8 @@ export default function TypingTest() {
 
     // 잘못된 입력이 발생했을 때 incorrectCount 업데이트
     if (currentIncorrectCount > 0) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       setIncorrectCount((prev) => Math.min(prev + currentIncorrectCount, 2));
     } else {
       setIncorrectCount(0);

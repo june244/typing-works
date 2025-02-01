@@ -3,25 +3,26 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react"; // useState 추가
 import ProgressBar from "./ProgressBar";
 import { useTypingContext } from "../context/TypingContext";
-import { colors } from "../constants/animation-const";
-import { getCaretCoordinates, hexToRGBA } from "../libs";
+// import { colors } from "../constants/animation-const";
+import { getCaretCoordinates } from "../libs";
 import HighlightedText from "./HighlightedText";
+import LightningEffect from "./LightningEffect";
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  color: string;
-  lifespan: number;
-  age: number;
-}
+// interface Particle {
+//   x: number;
+//   y: number;
+//   vx: number;
+//   vy: number;
+//   size: number;
+//   color: string;
+//   lifespan: number;
+//   age: number;
+// }
 
 export default function TypingTest() {
   const textareaRef = useRef<HTMLTextAreaElement>(null); // textarea 참조
   const canvasRef = useRef<HTMLCanvasElement>(null); // 캔버스 참조
-  const particlesRef = useRef<Particle[]>([]); // 입자 배열 참조
+  // const particlesRef = useRef<Particle[]>([]); // 입자 배열 참조
   const animationFrameId = useRef<number>(); // 애니메이션 프레임 ID
 
   // caretCoords 상태 추가
@@ -101,24 +102,26 @@ export default function TypingTest() {
     // 캔버스의 위치를 고려하여 좌표 조정
     const canvasRect = canvas.getBoundingClientRect();
     const adjustedX = x + canvasRect.left;
-    const adjustedY = 0 + 20;
+    const adjustedY = 0;
     console.log(canvasRect.left, canvasRect.top, y, y - canvasRect.top);
+    const lightning = new LightningEffect(canvas, adjustedX, adjustedY);
+    lightning.start();
 
     // 파티클 10개 생성
-    for (let i = 0; i < 10; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 2 + 1;
-      particlesRef.current.push({
-        x: adjustedX,
-        y: adjustedY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        size: Math.random() * 4 + 1,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        lifespan: 60, // 프레임 수 (1초 기준 60fps)
-        age: 0,
-      });
-    }
+    // for (let i = 0; i < 10; i++) {
+    //   const angle = Math.random() * Math.PI * 2;
+    //   const speed = Math.random() * 2 + 1;
+    //   particlesRef.current.push({
+    //     x: adjustedX,
+    //     y: adjustedY,
+    //     vx: Math.cos(angle) * speed,
+    //     vy: Math.sin(angle) * speed,
+    //     size: Math.random() * 4 + 1,
+    //     color: colors[Math.floor(Math.random() * colors.length)],
+    //     lifespan: 60, // 프레임 수 (1초 기준 60fps)
+    //     age: 0,
+    //   });
+    // }
   };
 
   // 캔버스 애니메이션 설정
@@ -144,34 +147,34 @@ export default function TypingTest() {
 
     window.addEventListener("resize", handleResize); // 창 크기 변경 이벤트 리스너 추가
 
-    // 애니메이션 루프
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height); // 캔버스 지우기
+    // // 애니메이션 루프
+    // const animate = () => {
+    //   ctx.clearRect(0, 0, canvas.width, canvas.height); // 캔버스 지우기
 
-      // 입자 업데이트 및 그리기
-      particlesRef.current.forEach((particle, index) => {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        particle.age += 1;
+    //   // 입자 업데이트 및 그리기
+    //   particlesRef.current.forEach((particle, index) => {
+    //     particle.x += particle.vx;
+    //     particle.y += particle.vy;
+    //     particle.age += 1;
 
-        // 입자의 수명 초과 시 제거
-        if (particle.age >= particle.lifespan) {
-          particlesRef.current.splice(index, 1);
-          return;
-        }
+    //     // 입자의 수명 초과 시 제거
+    //     if (particle.age >= particle.lifespan) {
+    //       particlesRef.current.splice(index, 1);
+    //       return;
+    //     }
 
-        // 투명도 계산 (수명에 따라 점점 사라짐)
-        const alpha = 1 - particle.age / particle.lifespan;
-        ctx.fillStyle = hexToRGBA(particle.color, alpha);
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
+    //     // 투명도 계산 (수명에 따라 점점 사라짐)
+    //     const alpha = 1 - particle.age / particle.lifespan;
+    //     ctx.fillStyle = hexToRGBA(particle.color, alpha);
+    //     ctx.beginPath();
+    //     ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+    //     ctx.fill();
+    //   });
 
-      animationFrameId.current = requestAnimationFrame(animate); // 다음 프레임 요청
-    };
+    //   animationFrameId.current = requestAnimationFrame(animate); // 다음 프레임 요청
+    // };
 
-    animate(); // 애니메이션 시작
+    // animate(); // 애니메이션 시작
 
     // 클린업 함수
     return () => {

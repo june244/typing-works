@@ -3,6 +3,9 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react"; // useState 추가
 import ProgressBar from "./ProgressBar";
 import { useTypingContext } from "../context/TypingContext";
+import { colors } from "../constants/animation-const";
+import { getCaretCoordinates, hexToRGBA } from "../libs";
+import HighlightedText from "./HighlightedText";
 
 interface Particle {
   x: number;
@@ -14,17 +17,6 @@ interface Particle {
   lifespan: number;
   age: number;
 }
-
-// 색상 팔레트 정의
-const colors: string[] = [
-  "#FF5733",
-  "#33FF57",
-  "#3357FF",
-  "#F333FF",
-  "#33FFF5",
-  "#F3FF33",
-  "#FF33A6",
-];
 
 export default function TypingTest() {
   const textareaRef = useRef<HTMLTextAreaElement>(null); // textarea 참조
@@ -49,92 +41,10 @@ export default function TypingTest() {
     setIncorrectCount,
   } = useTypingContext();
 
-  // 색상 변환 함수
-  const hexToRGBA = (hex: string, alpha: number): string => {
-    const bigint = parseInt(hex.slice(1), 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
-
-  // 커서 위치 계산 함수 (Mirror Div 기법)
-  const getCaretCoordinates = (
-    element: HTMLTextAreaElement,
-    position: number
-  ): { x: number; y: number } => {
-    const computed = window.getComputedStyle(element);
-
-    // Mirror Div 생성
-    const mirrorDiv = document.createElement("div");
-    mirrorDiv.style.position = "absolute";
-    mirrorDiv.style.whiteSpace = "pre-wrap";
-    mirrorDiv.style.wordWrap = "break-word";
-    mirrorDiv.style.visibility = "hidden";
-    mirrorDiv.style.pointerEvents = "none";
-
-    // textarea의 스타일 복제
-    const propertiesToCopy = [
-      "fontFamily",
-      "fontSize",
-      "fontWeight",
-      "fontStyle",
-      "letterSpacing",
-      "textTransform",
-      "textAlign",
-      "width",
-      "lineHeight",
-      "paddingTop",
-      "paddingRight",
-      "paddingBottom",
-      "paddingLeft",
-      "borderStyle",
-      "boxSizing",
-      "borderWidth",
-      "wordBreak",
-    ];
-
-    propertiesToCopy.forEach((prop) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      mirrorDiv.style[prop] = computed[prop];
-    });
-
-    // textarea의 스크롤 값 반영
-    mirrorDiv.style.overflow = "hidden";
-    mirrorDiv.style.whiteSpace = "pre-wrap";
-
-    // 텍스트 복제 (커서 위치까지)
-    const text = element.value.substring(0, position);
-    mirrorDiv.textContent = text;
-
-    // 커서 위치 표시를 위한 span 추가
-    const span = document.createElement("span");
-    span.textContent = "\u200B"; // zero-width space
-    mirrorDiv.appendChild(span);
-
-    // Mirror Div를 body에 추가
-    document.body.appendChild(mirrorDiv);
-
-    // span의 위치 측정
-    const spanRect = span.getBoundingClientRect();
-    const textareaRect = element.getBoundingClientRect();
-
-    // 좌표 계산
-    const x = spanRect.left - textareaRect.left + element.scrollLeft;
-    const y = spanRect.top - textareaRect.top + element.scrollTop;
-
-    // Mirror Div 제거
-    document.body.removeChild(mirrorDiv);
-
-    return { x, y };
-  };
-
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const newInput = e.target.value;
     if (newInput.endsWith("\n")) {
       if (userInput.length >= _static.length) {
-        console.log("Enter key pressed");
         setSentence();
         return; // Enter 키를 누르면 추가적인 처리를 막기 위해 여기서 종료
       }
@@ -175,34 +85,10 @@ export default function TypingTest() {
     if (caretPos !== null && textareaRef.current) {
       const coords = getCaretCoordinates(textareaRef.current, caretPos);
       setCaretCoords({ x: coords.x, y: coords.y });
-      console.log("Caret coordinates:", coords);
 
       // 애니메이션 생성 함수 호출
       handleTypingAt(coords.x, coords.y);
     }
-  };
-
-  // 가이드 문장과 사용자가 입력한 문장 비교 후 하이라이트
-  const renderHighlightedText = () => {
-    return (
-      <span>
-        {_static.split("").map((char, index) => {
-          if (index < userInput.length) {
-            return (
-              <span
-                key={index}
-                className={
-                  char === userInput[index] ? "text-green-500" : "text-red-500"
-                }
-              >
-                {char}
-              </span>
-            );
-          }
-          return <span key={index}>{char}</span>;
-        })}
-      </span>
-    );
   };
 
   // handleTypingAt 함수는 기존대로 유지됩니다.
@@ -215,7 +101,8 @@ export default function TypingTest() {
     // 캔버스의 위치를 고려하여 좌표 조정
     const canvasRect = canvas.getBoundingClientRect();
     const adjustedX = x + canvasRect.left;
-    const adjustedY = y + canvasRect.top;
+    const adjustedY = y - canvasRect.top - 90;
+    console.log(canvasRect.left, canvasRect.top, y, y - canvasRect.top);
 
     // 파티클 10개 생성
     for (let i = 0; i < 10; i++) {
@@ -298,12 +185,13 @@ export default function TypingTest() {
   const canvasStyle: React.CSSProperties = {
     display: "block", // 기본 인라인 동작 제거
     position: "absolute", // fixed에서 absolute로 변경
-    top: -320, // textarea의 상단과 맞춤
+    top: 0, // textarea의 상단과 맞춤
     left: 0, // textarea의 좌측과 맞춤
     width: "100%",
     height: "100%",
     pointerEvents: "none", // 캔버스가 마우스 이벤트를 방해하지 않도록 설정
-    zIndex: 20, // 다른 요소 뒤에 위치
+    zIndex: 99, // 다른 요소 뒤에 위치
+    backgroundClip: "red",
   };
 
   return (
@@ -322,7 +210,7 @@ export default function TypingTest() {
         />
       </div>
       <div className='p-3 mb-4 text-xl w-[960px]'>
-        {renderHighlightedText()}
+        <HighlightedText />
       </div>
       <div className={"relative w-[960px]"}>
         <canvas ref={canvasRef} style={canvasStyle} />
@@ -347,6 +235,7 @@ export default function TypingTest() {
             w-full
             resize-none
             text-white
+            z-0
           `}
           value={userInput}
           onChange={handleInputChange} // 여기서 애니메이션 시작

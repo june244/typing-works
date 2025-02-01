@@ -101,7 +101,7 @@ export default function TypingTest() {
     // 캔버스의 위치를 고려하여 좌표 조정
     const canvasRect = canvas.getBoundingClientRect();
     const adjustedX = x + canvasRect.left;
-    const adjustedY = y - canvasRect.top - 90;
+    const adjustedY = 0 + 20;
     console.log(canvasRect.left, canvasRect.top, y, y - canvasRect.top);
 
     // 파티클 10개 생성
@@ -131,8 +131,8 @@ export default function TypingTest() {
 
     // 캔버스 크기 설정
     const setCanvasSize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      canvas.width = 960;
+      canvas.height = 457;
     };
 
     setCanvasSize(); // 초기 크기 설정
